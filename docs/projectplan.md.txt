@@ -1,0 +1,1483 @@
+Day 1 – Understanding the Dataset
+Objective
+
+Before importing anything into MySQL, understand how the business works and how the tables are related.
+
+Reason
+
+Many beginners immediately import CSV files and start writing SQL queries.
+
+Instead, we decided to first understand the business because a good database is designed from business requirements, not from tables.
+
+Dataset Overview
+
+The dataset represents an e-commerce platform similar to Amazon.
+
+It contains information about:
+
+Customers
+Orders
+Products
+Sellers
+Payments
+Reviews
+Locations
+
+Together these tables describe the complete journey of an online purchase.
+
+Customer
+
+↓
+
+Order
+
+↓
+
+Products Purchased
+
+↓
+
+Payment
+
+↓
+
+Delivery
+
+↓
+
+Review
+
+Understanding Each Table
+Customers
+
+Purpose
+
+Stores customer information.
+
+Primary Key
+
+customer_id
+
+Important Observation
+
+Initially there was confusion between
+
+customer_id
+
+and
+
+customer_unique_id
+
+At first it looked like customer_unique_id should be the Primary Key.
+
+After analysing the dataset we understood:
+
+customer_id uniquely identifies each customer record.
+customer_unique_id identifies the real customer across multiple customer records.
+
+This distinction is useful for customer analytics such as repeat purchases and lifetime value.
+
+Orders
+
+Purpose
+
+Stores one row for every order.
+
+Primary Key
+
+order_id
+
+Foreign Key
+
+customer_id
+
+Important Observation
+
+The table stores only order information.
+
+It does not store products.
+
+At first this seemed strange.
+
+Later we realised one order can contain many products.
+
+That is why products are stored in another table.
+
+Order Items
+
+Purpose
+
+Stores every product inside every order.
+
+Important Discovery
+
+This was the first table where there was no obvious single Primary Key.
+
+Initial Confusion
+
+Neither
+
+order_id
+
+nor
+
+order_item_id
+
+was unique.
+
+Understanding
+
+The combination
+
+(order_id, order_item_id)
+
+uniquely identifies each row.
+
+This introduced the idea of a Composite Primary Key.
+
+Business Lesson
+
+One order can contain multiple products.
+
+Instead of repeating order information many times, the database separates orders from products.
+
+This avoids duplication and follows normalization principles.
+
+Products
+
+Purpose
+
+Stores product information.
+
+Primary Key
+
+product_id
+
+Observation
+
+This table has no Foreign Keys because it is a master table.
+
+It is referenced by the Order Items table.
+
+Sellers
+
+Purpose
+
+Stores seller information.
+
+Primary Key
+
+seller_id
+
+Observation
+
+Another master table.
+
+Referenced by Order Items.
+
+Payments
+
+Purpose
+
+Stores payment information.
+
+Important Observation
+
+An order can have multiple payment records.
+
+Because of this, payment information is stored separately from Orders.
+
+This avoids adding columns such as
+
+payment_type_1
+payment_type_2
+payment_type_3
+
+which would be poor database design.
+
+Reviews
+
+Purpose
+
+Stores customer feedback.
+
+Primary Key
+
+review_id
+
+Foreign Key
+
+order_id
+
+Observation
+
+Reviews are separated from Orders because customer feedback is a different business entity.
+
+Product Category Translation
+
+Purpose
+
+Maps Portuguese category names to English.
+
+Initial Thought
+
+It looked like just another CSV.
+
+Understanding
+
+It actually behaves like a lookup table.
+
+In our database design we may use it as a reference table to avoid duplicated category names.
+
+Geolocation
+
+This was the most confusing dataset.
+
+Initial Thought
+
+It had no IDs, no obvious Primary Key and no Foreign Keys.
+
+Understanding
+
+It is a lookup table that connects location information through ZIP code prefixes.
+
+Customers and Sellers both store ZIP code prefixes.
+
+The geolocation table translates those ZIP prefixes into:
+
+Latitude
+Longitude
+City
+State
+
+Potential Improvement
+
+The dataset contains duplicate ZIP prefixes.
+
+Later in the project we may create a cleaned location dimension so it can be used efficiently in MySQL and Power BI.
+
+Database Architecture We Discovered
+
+Instead of memorising relationships, we understood the business flow.
+
+Customer
+
+↓
+
+Order
+
+↓
+
+Order Items
+
+↓
+
+Product
+
+↓
+
+Seller
+
+Payment and Reviews are both linked to Orders.
+
+Locations are linked through ZIP code prefixes.
+
+Biggest Lessons Learned Today
+Understand the business before designing the database.
+Every table should have one clear responsibility.
+Master tables store reference information.
+Transaction tables record business events.
+Composite Primary Keys exist when one column cannot uniquely identify a row.
+Many-to-many relationships are solved using junction tables such as Order Items.
+Questions We Had
+
+Why are there two customer IDs?
+
+Why doesn't the Orders table contain products?
+
+Why does Order Items have a Composite Primary Key?
+
+Why are payments stored separately?
+
+Why does the Geolocation table have no ID?
+
+All of these questions were answered through analysing the business rather than memorising database concepts.
+
+
+
+#DAY 2
+
+
+# Phase 2 – Database Design Decisions
+
+---
+
+# Engineering Discussion 1 – Understanding One-to-Many Relationships
+
+## Why We Discussed This
+
+Before designing a relational database, it is important to understand how business entities are connected.
+
+Instead of memorizing relationships, the goal was to understand *why* those relationships exist in the real world.
+
+---
+
+## Initial Understanding
+
+At first, I understood that one category could contain multiple products, but I was unsure why a separate Category table was necessary instead of simply storing the category name inside the Products table.
+
+---
+
+## Business Scenario
+
+Imagine an online store with the following products.
+
+| Product | Category |
+|----------|----------|
+| iPhone | Electronics |
+| MacBook | Electronics |
+| AirPods | Electronics |
+
+If the category name is stored inside every product record, the value "Electronics" is repeated many times.
+
+This creates duplicated data.
+
+---
+
+## Problem
+
+If the business decides to rename the category from
+
+Electronics
+
+to
+
+Consumer Electronics
+
+every product belonging to that category must be updated.
+
+For thousands of products this becomes inefficient and increases the chance of inconsistent data.
+
+---
+
+## Better Database Design
+
+Create a separate Category table.
+
+Category
+
+category_id (PK)
+
+category_name_pt
+
+category_name_en
+
+Products
+
+product_id (PK)
+
+category_id (FK)
+
+Now every product references the category instead of storing the category repeatedly.
+
+---
+
+## Relationship
+
+One Category
+
+↓
+
+Many Products
+
+This is called a One-to-Many relationship.
+
+One parent record can have many child records.
+
+Each child record belongs to exactly one parent.
+
+---
+
+## Lesson Learned
+
+One-to-Many relationships reduce duplicated data and improve database maintenance.
+
+Instead of storing repeated information, relational databases store it once and connect tables using foreign keys.
+
+---
+
+# Engineering Discussion 2 – Understanding the Translation Table
+
+## Initial Confusion
+
+The dataset contains a table named
+
+product_category_name_translation
+
+Unlike the other tables, it contains no obvious ID column.
+
+This raised the question:
+
+"If there is no ID, how is this table connected to the database?"
+
+---
+
+## Investigation
+
+The table contains two columns.
+
+product_category_name
+
+product_category_name_english
+
+The Portuguese category name is unique.
+
+Therefore, within the original dataset it behaves as a Natural Primary Key.
+
+Products reference this text value directly.
+
+---
+
+## Original Dataset Design
+
+Products
+
+product_category_name
+
+↓
+
+Translation Table
+
+product_category_name (Natural Primary Key)
+
+↓
+
+English Translation
+
+Although this works correctly, it means the relationship is built using text instead of an identifier.
+
+---
+
+## Engineering Improvement
+
+Instead of using text as the identifier, a production database would normally introduce a Category table.
+
+Category
+
+category_id (PK)
+
+category_name_pt
+
+category_name_en
+
+Products
+
+category_id (FK)
+
+This approach provides a stable identifier while allowing additional category information to be added in the future.
+
+---
+
+## Why This Design Is Better
+
+• Easier to maintain
+
+• Avoids using long text as foreign keys
+
+• Easier to index
+
+• Supports additional category metadata
+
+• More scalable if the business grows
+
+---
+
+## Lesson Learned
+
+The dataset represents one possible implementation.
+
+A database engineer should evaluate whether the existing design is suitable or whether it can be improved.
+
+---
+
+# Engineering Discussion 3 – Composite Primary Key vs Surrogate Primary Key
+
+## Question
+
+The Order Items table currently uses
+
+(order_id, order_item_id)
+
+as a Composite Primary Key.
+
+Should this design be kept?
+
+Or should it be replaced with a single surrogate key?
+
+---
+
+## Initial Thought
+
+At first, the idea of introducing a single Order Item ID seemed simpler because every row would have one unique identifier.
+
+---
+
+## Analysis
+
+The existing composite key already uniquely identifies every product inside an order.
+
+Example
+
+Order 100
+
+Item 1
+
+Item 2
+
+Item 3
+
+The combination
+
+(order_id, order_item_id)
+
+already has real business meaning.
+
+It naturally represents the position of a product inside an order.
+
+---
+
+## Alternative Design
+
+Order_Items
+
+order_item_id (PK)
+
+order_id (FK)
+
+product_id (FK)
+
+seller_id (FK)
+
+price
+
+freight_value
+
+This design is commonly used in production systems because many frameworks and APIs prefer a single-column primary key.
+
+---
+
+## Final Decision for This Project
+
+The composite primary key will be retained.
+
+Reason:
+
+The goal of this project is to model the business accurately while demonstrating an understanding of composite keys.
+
+An alternative surrogate key design was considered, but introducing an additional identifier would not provide significant value for this analytics database.
+
+---
+
+## Lesson Learned
+
+Not every table requires a surrogate key.
+
+Composite Primary Keys are completely valid when they naturally represent the business process.
+
+A good database design is based on business requirements rather than personal preference.
+
+---
+
+# Key Takeaways
+
+At this stage, the focus shifted from analysing CSV files to thinking like a database engineer.
+
+Important lessons learned:
+
+✓ Every relationship should represent a real business process.
+
+✓ Database design should minimize duplicated data.
+
+✓ Foreign Keys connect related entities.
+
+✓ Lookup tables improve consistency.
+
+✓ Composite Primary Keys are sometimes better than introducing artificial IDs.
+
+✓ A dataset should never be copied blindly.
+
+Instead, every design choice should be questioned and justified before implementation.
+
+
+#NExt phase Designing and ER diagram 
+
+
+# Phase 2 – Database Design (Learning Before Building)
+
+---
+
+# Objective
+
+Before creating any tables in MySQL, the goal was to understand how professional databases are designed.
+
+Instead of jumping directly into SQL, we decided to learn the design process used by database engineers.
+
+The idea is simple:
+
+A database should never be built by copying CSV files.
+
+It should be built by understanding the business first.
+
+---
+
+# Engineering Discussion 1 – What is an ER Diagram?
+
+## Initial Thought
+
+Initially, I thought an ER Diagram was simply boxes connected with lines before creating tables.
+
+After discussion, I understood that an ER Diagram is much more than a drawing.
+
+It is the blueprint of the entire database.
+
+Just as a building requires an architectural blueprint before construction begins, a database requires an ER Diagram before implementation.
+
+Business Requirements
+
+↓
+
+ER Diagram
+
+↓
+
+Database Schema
+
+↓
+
+MySQL Implementation
+
+Without a proper blueprint, the database may work initially but become difficult to maintain and expand.
+
+---
+
+## What an ER Diagram Contains
+
+Every ER Diagram contains four main components.
+
+### 1. Entities
+
+Entities represent real-world business objects.
+
+Examples from this project:
+
+- Customer
+- Orders
+- Products
+- Sellers
+- Payments
+- Reviews
+- Categories
+- Locations
+
+A simple way to identify entities is to read the business requirements and circle the nouns.
+
+Example:
+
+Customer places an Order.
+
+Order contains Products.
+
+Customer leaves a Review.
+
+The nouns become entities.
+
+---
+
+### 2. Attributes
+
+Attributes describe an entity.
+
+Example:
+
+Customer
+
+- customer_id
+- customer_city
+- customer_state
+
+These later become the columns inside a database table.
+
+---
+
+### 3. Relationships
+
+Relationships explain how two entities are connected.
+
+Examples:
+
+One Customer → Many Orders
+
+One Order → Many Order Items
+
+One Category → Many Products
+
+Relationships should always represent a real business process.
+
+---
+
+### 4. Keys
+
+Every entity requires a way to identify each record.
+
+Examples include:
+
+- Primary Keys
+- Foreign Keys
+- Composite Primary Keys
+- Natural Keys
+
+Keys ensure data integrity and allow tables to be connected.
+
+---
+
+# Lesson Learned
+
+An ER Diagram is not simply a picture.
+
+It is the complete blueprint of the database and should always be designed before writing SQL.
+
+---
+
+# Engineering Discussion 2 – Understanding Business Before Designing
+
+One of the biggest lessons learned was that database design should begin with the business rather than the dataset.
+
+Initially, the temptation was to recreate the CSV files exactly as they existed.
+
+However, this approach ignores why the business stores the data.
+
+Instead, every entity should answer one simple question.
+
+"What business information are we trying to store?"
+
+For this project:
+
+Customer
+
+↓
+
+Places an Order
+
+↓
+
+Order contains Products
+
+↓
+
+Products are sold by Sellers
+
+↓
+
+Customer makes Payment
+
+↓
+
+Customer leaves Review
+
+This business flow became the foundation of the database design.
+
+---
+
+# Lesson Learned
+
+Always understand the business first.
+
+The database is built to solve business problems, not to copy spreadsheets.
+
+---
+
+# Engineering Discussion 3 – Identifying Business Entities
+
+After understanding the business process, the next step was identifying the entities.
+
+Instead of using dataset names, the entities were redesigned to represent business concepts.
+
+Final entities:
+
+- Customer
+- Orders
+- Order Items
+- Products
+- Sellers
+- Payments
+- Reviews
+- Categories
+- Locations
+
+An important realization was that dataset names and database entities are not always the same.
+
+For example:
+
+The dataset contains
+
+product_category_name_translation
+
+Instead of creating a table with that name, we designed a proper Category entity.
+
+This makes the database easier to understand and maintain.
+
+---
+
+# Lesson Learned
+
+Design the database around business concepts rather than CSV filenames.
+
+---
+
+# Engineering Discussion 4 – Understanding One-to-Many Relationships
+
+Initially, I understood that one category could contain many products.
+
+However, I did not fully understand why a separate Category table was necessary.
+
+The discussion showed that storing the category name inside every product would create duplicated data.
+
+Example:
+
+Product
+
+iPhone
+
+Category
+
+Electronics
+
+MacBook
+
+Category
+
+Electronics
+
+AirPods
+
+Category
+
+Electronics
+
+The word "Electronics" would be repeated thousands of times.
+
+Instead, a Category table stores the category only once.
+
+Category
+
+category_id
+
+category_name
+
+Products then store only
+
+category_id
+
+This reduces duplication and improves consistency.
+
+---
+
+# Relationship
+
+One Category
+
+↓
+
+Many Products
+
+This is called a One-to-Many relationship.
+
+One parent record can be related to many child records.
+
+Every child belongs to exactly one parent.
+
+---
+
+# Lesson Learned
+
+One-to-Many relationships reduce duplicated data and make the database easier to maintain.
+
+---
+
+# Engineering Discussion 5 – What Makes a Good Production Database?
+
+One important question was raised.
+
+Should the database simply copy the original dataset?
+
+The answer was no.
+
+A database engineer should always evaluate whether the design can be improved.
+
+However, improvements should only be made when they provide real business value.
+
+Adding complexity without solving a business problem is considered over-engineering.
+
+---
+
+# Lesson Learned
+
+A good engineer does not copy a design blindly.
+
+Every design decision should be questioned and justified.
+
+---
+
+# Engineering Discussion 6 – Understanding the Translation Table
+
+The table
+
+product_category_name_translation
+
+created confusion because it contains no ID column.
+
+Initially, it seemed incomplete because almost every other table contains a Primary Key.
+
+After analysing the table, I understood that the Portuguese category name is unique.
+
+In the original dataset, it acts as a Natural Primary Key.
+
+Original Design
+
+Products
+
+↓
+
+product_category_name
+
+↓
+
+Translation Table
+
+↓
+
+English Category Name
+
+Although this works correctly, production databases usually prefer numeric identifiers.
+
+For our project, the design was improved.
+
+Category
+
+category_id
+
+category_name_pt
+
+category_name_en
+
+Products now reference
+
+category_id
+
+instead of text.
+
+---
+
+# Lesson Learned
+
+Natural Keys are valid.
+
+However, surrogate keys are often preferred in production because they are easier to manage and extend.
+
+---
+
+# Engineering Discussion 7 – Understanding Composite Primary Keys
+
+The Order Items table introduced a Composite Primary Key.
+
+Initially, I questioned whether a single Primary Key would be better.
+
+Alternative Design
+
+order_item_id
+
+↓
+
+order_id
+
+↓
+
+product_id
+
+↓
+
+seller_id
+
+After discussion, I realised that the existing design already represents the business naturally.
+
+The combination
+
+(order_id, order_item_id)
+
+uniquely identifies every product inside an order.
+
+This is a valid Composite Primary Key.
+
+Although many production systems introduce a surrogate key, doing so here would add complexity without providing additional value.
+
+---
+
+# Final Decision
+
+The project will retain the Composite Primary Key because it accurately models the business and demonstrates understanding of composite keys.
+
+---
+
+# Lesson Learned
+
+Not every table requires a surrogate key.
+
+Composite Primary Keys are valid when they naturally represent the business.
+
+---
+
+# Engineering Discussion 8 – Finding the Heart of the Database
+
+Initially, I believed Customer was the central table.
+
+After analysing the relationships, I realised this was incorrect.
+
+Everything in the business revolves around Orders.
+
+Customer
+
+↓
+
+Orders
+
+↓
+
+Payments
+
+↓
+
+Reviews
+
+↓
+
+Order Items
+
+If Orders disappear, almost every business transaction disappears.
+
+---
+
+# Final Understanding
+
+Orders is the heart of the database.
+
+Most business activities begin with an order.
+
+---
+
+# Lesson Learned
+
+The most important table is not always the first table.
+
+The central entity is the one through which most business processes occur.
+
+---
+
+# Engineering Discussion 9 – Independent and Dependent Entities
+
+Another important concept was understanding which entities can exist by themselves.
+
+Independent Entities
+
+- Customer
+- Product
+- Seller
+- Category
+- Location
+
+These can exist without another entity.
+
+Dependent Entities
+
+- Orders
+- Order Items
+- Payments
+- Reviews
+
+These depend on another entity to exist.
+
+For example,
+
+a Payment cannot exist without an Order.
+
+A Review cannot exist without an Order.
+
+---
+
+# Lesson Learned
+
+Thinking about dependency helps identify relationships and foreign keys.
+
+---
+
+# Engineering Discussion 10 – Relationship Type vs Participation
+
+One misunderstanding occurred when discussing mandatory relationships.
+
+Initially, I confused
+
+One-to-Many
+
+with
+
+Mandatory Relationships.
+
+These are different concepts.
+
+Relationship Type answers
+
+"How many records are related?"
+
+Participation answers
+
+"Can this record exist without another record?"
+
+Example
+
+A Customer can exist without placing an Order.
+
+This relationship is optional for Customer.
+
+However,
+
+an Order cannot exist without a Customer.
+
+This relationship is mandatory for Order.
+
+---
+
+# Lesson Learned
+
+Relationship type and participation are completely different concepts.
+
+Both must be considered when designing an ER Diagram.
+
+---
+
+# Engineering Discussion 11 – Should Products Support Multiple Categories?
+
+While designing the ER Diagram, a production-level question was raised.
+
+Should one product belong to only one category?
+
+Or should multiple categories be supported?
+
+A more scalable design would introduce a junction table.
+
+Category
+
+↓
+
+Product_Category
+
+↓
+
+Products
+
+This allows a product to appear in multiple categories.
+
+Example:
+
+MacBook
+
+- Electronics
+- Computers
+- Student
+- Office
+
+However, the original business requirements indicate that each product belongs to only one category.
+
+Introducing a junction table would therefore increase complexity without solving an existing business problem.
+
+---
+
+# Final Decision
+
+The project will retain a One-to-Many relationship between Category and Products.
+
+The junction table design is documented as a future enhancement if business requirements change.
+
+---
+
+# Lesson Learned
+
+A scalable solution is not always the correct solution.
+
+A database should satisfy current business requirements while remaining adaptable for future growth.
+
+Avoid over-engineering.
+
+---
+
+# Key Takeaways From This Phase
+
+By the end of this phase, I no longer viewed database design as simply creating tables.
+
+Instead, I understood that professional database design involves:
+
+✓ Understanding the business first.
+
+✓ Identifying business entities.
+
+✓ Defining relationships based on business rules.
+
+✓ Evaluating multiple design options.
+
+✓ Avoiding unnecessary complexity.
+
+✓ Justifying every design decision.
+
+The ER Diagram is therefore not just a picture.
+
+It is the blueprint that guides the implementation of the entire database.
+
+
+
+# Phase 3 – Physical Database Design
+
+---
+
+# Objective
+
+After completing the Logical ER Diagram, the next step was understanding how a logical design is converted into a real database.
+
+At first, I thought creating tables in MySQL was simply choosing column names and data types.
+
+However, I learned that professional database design requires making engineering decisions before writing any SQL.
+
+For every table, a database engineer should ask:
+
+- Why does this table exist?
+- What business problem does it solve?
+- What is the Primary Key?
+- Why was that Primary Key chosen?
+- Which data type is most appropriate?
+- Which constraints are required?
+- Which columns should be indexed?
+- Can the design scale as the business grows?
+
+Only after answering these questions should the table be implemented.
+
+---
+
+# Engineering Exercise – Designing the Customer Table
+
+To understand the process, the Customer table was designed completely before moving to MySQL.
+
+Instead of immediately writing SQL, every column was questioned.
+
+---
+
+# Step 1 – Understanding the Purpose
+
+The Customer table exists to store customer information.
+
+Its responsibility is only customer-related data.
+
+It should not contain orders, payments or reviews because those belong to different business entities.
+
+This follows the Single Responsibility Principle.
+
+---
+
+# Step 2 – Analysing Every Column
+
+The dataset contains five columns.
+
+- customer_id
+- customer_unique_id
+- customer_zip_code_prefix
+- customer_city
+- customer_state
+
+Instead of accepting them without question, every column was analysed.
+
+---
+
+## customer_id
+
+### Initial Confusion
+
+At first, I was confused because another column called `customer_unique_id` already existed.
+
+I thought that if a unique customer identifier already exists, then `customer_id` seems unnecessary.
+
+---
+
+### Investigation
+
+After analysing the Orders table, I discovered that Orders do not reference `customer_unique_id`.
+
+Instead, every order references `customer_id`.
+
+This means `customer_id` identifies the customer record attached to a specific order.
+
+Example:
+
+Real Customer
+
+↓
+
+customer_unique_id = U100
+
+↓
+
+Order 1
+
+customer_id = A1
+
+↓
+
+Order 2
+
+customer_id = C3
+
+Although both records belong to the same real customer, each order has its own customer record.
+
+---
+
+### Why Does Olist Do This?
+
+This design preserves historical information.
+
+Imagine a customer places an order while living in São Paulo.
+
+Months later the customer moves to Rio and places another order.
+
+If only one customer record existed, the original address could be lost or overwritten.
+
+By creating a separate `customer_id` for each order-level customer record while keeping the same `customer_unique_id`, historical customer information remains associated with the correct order.
+
+---
+
+### Final Decision
+
+- Data Type: CHAR(32)
+- Constraint: PRIMARY KEY
+- Constraint: NOT NULL
+
+The values are always 32 characters long, making CHAR(32) a better choice than VARCHAR(32).
+
+---
+
+## customer_unique_id
+
+### Purpose
+
+This column represents the real customer across multiple purchases.
+
+Unlike `customer_id`, which identifies an order-level customer record, `customer_unique_id` identifies the actual person.
+
+This makes analyses such as:
+
+- Customer Lifetime Value (CLV)
+- Repeat Customer Analysis
+- Customer Retention
+- Churn Analysis
+
+possible.
+
+Without this column, every order would appear to belong to a completely new customer.
+
+---
+
+### The Trick Question
+
+One important question was asked during the design process.
+
+Should `customer_unique_id` have a UNIQUE constraint?
+
+Initially, the obvious answer seemed to be "Yes" because the column name contains the word "unique".
+
+However, this assumption is incorrect.
+
+Example:
+
+| customer_id | customer_unique_id |
+|--------------|-------------------|
+| A1 | U100 |
+| B2 | U200 |
+| C3 | U100 |
+
+The same customer (`U100`) appears more than once because the customer placed multiple orders.
+
+If a UNIQUE constraint were applied, the database would reject the third row.
+
+This demonstrates an important lesson:
+
+The word "unique" in a column name does not necessarily mean the values must be unique within that table.
+
+Instead, `customer_unique_id` uniquely identifies the real person, while the table intentionally stores multiple records for that person.
+
+---
+
+### Final Decision
+
+- Data Type: CHAR(32)
+- Constraint: NOT NULL
+- UNIQUE Constraint: Not Applied
+
+---
+
+# Engineering Lessons Learned
+
+Several important lessons were learned from designing only one table.
+
+### Lesson 1
+
+Never choose a data type without a reason.
+
+Every data type should be justified.
+
+Example:
+
+CHAR(32) was selected because every identifier has a fixed length.
+
+---
+
+### Lesson 2
+
+Never assume a column's purpose from its name.
+
+Understanding how a column is used across the database is more important than its name.
+
+The `customer_unique_id` column is the perfect example.
+
+---
+
+### Lesson 3
+
+Primary Keys should represent how the business identifies records.
+
+The Orders table references `customer_id`, making it the correct Primary Key even though another identifier exists.
+
+---
+
+### Lesson 4
+
+Database design is driven by business requirements rather than technical preferences.
+
+Understanding how the business operates should always come before writing SQL.
+
+---
+
+# Final Reflection
+
+Before this phase, I believed physical database design meant deciding column names and data types.
+
+After completing this exercise, I understood that physical design is actually a process of making engineering decisions.
+
+Every column, constraint and data type should have a clear business justification before implementation begins.
+
+This phase changed the way I think about designing databases and provided a repeatable methodology that can now be applied to every remaining table in the project.
+
+
