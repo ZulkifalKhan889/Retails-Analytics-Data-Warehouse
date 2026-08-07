@@ -1,0 +1,122 @@
+<mxfile host="app.diagrams.net" agent="Claude">
+  <diagram name="Olist E-Commerce ERD" id="olist-erd-1">
+    <mxGraphModel dx="1407" dy="844" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t_orders" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="&lt;b&gt;olist_orders_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;order_id (PK)&lt;/i&gt;&lt;br&gt;customer_id (FK)&lt;br&gt;order_status&lt;br&gt;order_purchase_timestamp&lt;br&gt;order_approved_at&lt;br&gt;order_delivered_carrier_date&lt;br&gt;order_delivered_customer_date&lt;br&gt;order_estimated_delivery_date" vertex="1">
+          <mxGeometry height="176" width="240" x="561" y="23" as="geometry" />
+        </mxCell>
+        <mxCell id="t_customers" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" value="&lt;b&gt;olist_customers_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;customer_id (PK)&lt;/i&gt;&lt;br&gt;customer_unique_id&lt;br&gt;customer_zip_code_prefix&lt;br&gt;customer_city&lt;br&gt;customer_state" vertex="1">
+          <mxGeometry height="122" width="240" x="170" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_order_items" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="&lt;b&gt;olist_order_items_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;order_id (PK,FK)&lt;/i&gt;&lt;br&gt;&lt;i&gt;order_item_id (PK)&lt;/i&gt;&lt;br&gt;product_id (FK)&lt;br&gt;seller_id (FK)&lt;br&gt;shipping_limit_date&lt;br&gt;price&lt;br&gt;freight_value" vertex="1">
+          <mxGeometry height="160" width="250" x="956" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="t_order_payments" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="&lt;b&gt;olist_order_payments_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;order_id (PK,FK)&lt;/i&gt;&lt;br&gt;&lt;i&gt;payment_sequential (PK)&lt;/i&gt;&lt;br&gt;payment_type&lt;br&gt;payment_installments&lt;br&gt;payment_value" vertex="1">
+          <mxGeometry height="160" width="240" x="428" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="t_order_reviews" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="&lt;b&gt;olist_order_reviews_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;review_id (PK)&lt;/i&gt;&lt;br&gt;order_id (FK)&lt;br&gt;review_score&lt;br&gt;review_comment_title&lt;br&gt;review_comment_message&lt;br&gt;review_creation_date&lt;br&gt;review_answer_timestamp" vertex="1">
+          <mxGeometry height="160" width="250" x="687" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="GfiLcBNCOYmb94U9PYi8-4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=none;endFill=0;" target="t_category" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="1400" y="220.99999999999977" as="sourcePoint" />
+            <mxPoint x="1400" y="507" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GfiLcBNCOYmb94U9PYi8-24" connectable="0" parent="GfiLcBNCOYmb94U9PYi8-4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Product_category_Name" vertex="1">
+          <mxGeometry relative="1" x="0.0216" y="-2" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t_products" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" value="&lt;b&gt;olist_products_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;product_id (PK)&lt;/i&gt;&lt;br&gt;product_category_name&amp;nbsp;&lt;br&gt;product_name_lenght&lt;br&gt;product_description_lenght&lt;br&gt;product_photos_qty&lt;br&gt;product_weight_g&lt;br&gt;product_length_cm&lt;br&gt;product_height_cm&lt;br&gt;product_width_cm" vertex="1">
+          <mxGeometry height="192" width="250" x="1277" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="t_sellers" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" value="&lt;b&gt;olist_sellers_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;seller_id (PK)&lt;/i&gt;&lt;br&gt;seller_zip_code_prefix&lt;br&gt;seller_city&lt;br&gt;seller_state" vertex="1">
+          <mxGeometry height="160" width="240" x="898" y="588" as="geometry" />
+        </mxCell>
+        <mxCell id="t_geolocation" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" value="&lt;b&gt;olist_geolocation_dataset&lt;/b&gt;&lt;br&gt;&lt;i&gt;geolocation_zip_code_prefix&lt;/i&gt;&lt;br&gt;geolocation_lat&lt;br&gt;geolocation_lng&lt;br&gt;geolocation_city&lt;br&gt;geolocation_state" vertex="1">
+          <mxGeometry height="160" width="240" x="428" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="t_category" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" value="&lt;b&gt;product_category_name_translation&lt;/b&gt;&lt;br&gt;&lt;i&gt;product_category_name&amp;nbsp;&lt;/i&gt;&lt;br&gt;product_category_name_english" vertex="1">
+          <mxGeometry height="160" width="250" x="1219" y="601" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="t_orders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;" target="t_customers" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="t_order_items" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" target="t_orders" value="1:N">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1111" y="271.82" />
+              <mxPoint x="907" y="271.82" />
+              <mxPoint x="907" y="67.09" />
+            </Array>
+            <mxPoint x="801.44" y="130.01" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="t_order_items" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;" target="t_products" value="N:1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1258.45" y="388" />
+              <mxPoint x="1258.45" y="123.09" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="t_order_items" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;" target="t_sellers" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;exitX=0.426;exitY=0.015;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="t_orders" value="N:1">
+          <mxGeometry relative="1" x="-0.0036" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="498.09" y="278.73" />
+              <mxPoint x="620.09" y="278.73" />
+            </Array>
+            <mxPoint x="498.0000000000002" y="313.0000000000001" as="sourcePoint" />
+            <mxPoint x="637.7590909090906" y="204.6" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="t_geolocation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=none;startArrow=none;fontSize=11;entryX=0.397;entryY=0.994;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="t_customers" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="265.36" y="638" />
+            </Array>
+            <mxPoint x="265.28" y="522.67" as="sourcePoint" />
+            <mxPoint x="265.9999999999998" y="184" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GfiLcBNCOYmb94U9PYi8-21" connectable="0" parent="e8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="zip_code_Prefix" vertex="1">
+          <mxGeometry relative="1" x="0.0255" y="2" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="t_geolocation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=none;startArrow=none;fontSize=11;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="t_sellers" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720.27" y="595.09" />
+              <mxPoint x="720.27" y="668" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GfiLcBNCOYmb94U9PYi8-25" connectable="0" parent="e9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Zip_code_prefix" vertex="1">
+          <mxGeometry relative="1" x="-0.1589" y="3" as="geometry">
+            <mxPoint x="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GfiLcBNCOYmb94U9PYi8-15" edge="1" parent="1" source="t_order_reviews" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERone;startArrow=ERmany;fontSize=11;startFill=1;endFill=0;exitX=0.423;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;" target="t_orders" value="1:N">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="793" y="313.09" />
+              <mxPoint x="793" y="281.45" />
+              <mxPoint x="694.09" y="281.45" />
+            </Array>
+            <mxPoint x="927" y="248" as="sourcePoint" />
+            <mxPoint x="669.36" y="211.15" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
