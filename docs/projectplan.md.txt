@@ -1481,3 +1481,16 @@ Every column, constraint and data type should have a clear business justificatio
 This phase changed the way I think about designing databases and provided a repeatable methodology that can now be applied to every remaining table in the project.
 
 
+
+#Tablecreation phase
+
+## Session Summary – Database Schema & ER Diagram
+
+- Completed the relational database implementation by creating all core tables with appropriate primary keys, foreign keys, constraints, and data types.
+- Applied normalization concepts to separate master, transaction, junction, and lookup tables for a scalable database design.
+- Discussed important design decisions, including why `Order_Items` is a junction table and why composite primary keys are used instead of adding unnecessary surrogate keys.
+- Clarified the difference between physical foreign key relationships and logical relationships (e.g., `Geolocation` and `Product_Category_Translation`), ensuring the schema accurately reflects the dataset.
+- Designed a professional ER Diagram to visualize the database architecture, business flow, and table relationships.
+- Reviewed and corrected relationship cardinalities (1:N vs N:1) to ensure the ER Diagram follows industry best practices.
+- Organized the project documentation by saving the editable ER Diagram and an exported image inside the `docs/diagrams` directory for GitHub.
+- Completed **Phase 3: Database Design & Implementation**, preparing the project for the next phase: ETL (data import, cleaning, and validation).
