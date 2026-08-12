@@ -1494,3 +1494,112 @@ This phase changed the way I think about designing databases and provided a repe
 - Reviewed and corrected relationship cardinalities (1:N vs N:1) to ensure the ER Diagram follows industry best practices.
 - Organized the project documentation by saving the editable ER Diagram and an exported image inside the `docs/diagrams` directory for GitHub.
 - Completed **Phase 3: Database Design & Implementation**, preparing the project for the next phase: ETL (data import, cleaning, and validation).
+
+
+### Next phase is importing data to sql but we need to validate our data so we go for pyhton importing the data 
+#there and then check it there whether primary key that we did in mysql are really primary key in the dataalso 
+#and also there are other things like data cleaning and data tranformation etc
+
+
+"During schema validation, I found that review_id was not unique in the source data.
+ Rather than treating those rows as duplicates and deleting them, I investigated the 
+relationship and found that (review_id, order_id) was unique. 
+Therefore, I modeled the Reviews table using a composite primary key."
+
+
+.....continue
+
+Review ID Investigation — What We Found
+Initially, we assumed review_id was the primary key of the Reviews table because an ID is normally expected to uniquely identify a record.
+During basic profiling, we found:
+Total review rows = 99,224
+Unique review_id values = 98,410
+Therefore, review_id is not unique.
+Our primary-key validation therefore returned FAIL.
+We did not immediately delete the duplicated rows. This was important because a repeated ID does not automatically mean the entire record is bad.
+Investigation 1 — What exactly is duplicated?
+We checked which rows had repeated review_id values.
+We found:
+789 review_id values were duplicated.
+1,603 rows were involved in those duplicated IDs.
+Looking at the examples showed something important:
+The same review_id appeared with different order_id values.
+Other review information, such as score, comment, creation date, and answer timestamp, was often the same.
+This told us that the problem was not simply "duplicate rows."
+The review_id column itself was being reused across different orders.
+Investigation 2 — Can we find a combination that uniquely identifies the record?
+
+We tested:
+
+(review_id + order_id)
+
+The result was:
+
+Duplicated (review_id, order_id) rows = 0
+
+So:
+
+review_id alone
+❌ Not unique
+
+review_id + order_id
+✅ Unique
+
+This means the combination of the two columns can uniquely identify every review record in this dataset.
+
+What did we learn?
+A column having the word id in its name does NOT automatically mean it can be a primary key.
+A primary key must actually be unique and non-null.
+We should validate the real data before finalizing our database constraints.
+We shouldn't delete records just because an ID is repeated.
+We investigated the relationship between the columns first and found a better key structure.
+Based on this dataset, the Reviews table can use:
+PRIMARY KEY (review_id, order_id)
+
+as a composite primary key.
+
+#Gelocation table investigation
+
+Geolocation Lookup & Key Decision
+We found that geolocation_zip_code_prefix is not unique in the geolocation table.
+The same ZIP prefix can have many different latitude and longitude values.
+Therefore, ZIP prefix cannot be the primary key of the geolocation table.
+We created a surrogate key, geolocation_id, to give every geolocation row its own unique identity.
+geolocation_id tells us which geolocation row we are referring to, while the ZIP prefix tells us which geographic area the row belongs to.
+Customer and seller tables only contain the ZIP prefix, not an exact geolocation_id.
+Therefore, we cannot determine the exact coordinates of a customer or seller from this dataset.
+We can use the ZIP prefix to look up multiple possible coordinates for that area, but we should not randomly choose one.
+Choosing one coordinate without evidence would create information that does not exist in the original data.
+Therefore, we will keep the ZIP prefix as the geographic matching attribute and use geolocation_id only to uniquely identify records inside the geolocation table.
+This prevents us from creating a false foreign-key relationship between customers/sellers and a specific geolocation record.
+
+Customer/Seller → Geolocation: No direct FK relationship will be created because ZIP prefix is non-unique 
+and the source data does not provide enough information to identify one exact geolocation record.
+ ZIP prefix remains available for geographic lookup.
+
+
+#another lookup table investigation
+
+Product Category Translation Investigation
+We checked the product_category_name_translation table to see if product_category_name could be used as its lookup key.
+The table contains 71 rows, 71 unique category names, and 0 duplicates, so the key is valid.
+We then checked whether every non-null product category has a matching English translation.
+We found 2 categories without translations: pc_gamer and portateis_cozinha_e_preparadores_de_alimentos.
+This is a data completeness issue, not a key or relationship problem.
+We will keep the relationship between products.product_category_name and product_category_name_translation.product_category_name.
+During the final transformation, products with these categories will keep a NULL English translation unless a reliable translation is added separately.
+We will not invent translations or delete these products just because their translation is missing.
+
+
+For the validation phase we planned,
+
+We've checked the important structural problems across the tables:
+
+Initial data profiling — rows, columns, data types, missing values, duplicates.
+Primary keys — verified the main PKs; investigated the review_id issue rather than blindly deleting duplicates.
+Composite keys — validated (order_id, order_item_id) and (order_id, payment_sequential).
+Foreign keys — checked the relationships between the tables.
+Geolocation — discovered ZIP prefixes are not unique, so we kept geolocation_id as the surrogate PK and decided not to create a false exact customer/seller → geolocation relationship.
+Category translation — confirmed its key is unique and found 2 categories without English translations.
+ERD/schema — already created and reviewed.
+We've reached the end of this phase.

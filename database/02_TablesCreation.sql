@@ -194,14 +194,40 @@ product_category_name_english varchar(100) not null);
 
 show tables;
 
-#geolocation table  final table as we have zip code in customer and seller table we can use this table as areference to find the location of 
-#the seller and customers using the zip_code as  matching column
+#geolocation table  final table as we have zip code in customer and seller table we can use this table as areference to find the location(like latitude and 
+#longitude) of #the seller and customers using the zip_code as  matching column
 
 #now this table has a problem it lacks the primary key but there is zipcode but zip code is  duplicate here in this lookup table 
 #because in saem zip code we ave diff laitutde and longitude for the same customer so it can be repeated 
 
 #thats why we are gonna create a surrogate key which will act as a primary key 
 
+
+ #when investigating this table as a reference table in the python we found that zip_code_can be used as a matching column because 
+ #it is shared with both the table like cusotmer and seller but it is not unique  like if we find the customer exact coordinates
+ # then we face the issue
+ #After investigating the real data, we discovered:
+
+/*
+Customer
+   │
+   │ ZIP = 1001
+   ▼
+Geolocation
+   ├── 1001 / coordinate A
+   ├── 1001 / coordinate B
+   ├── 1001 / coordinate C
+   └── 1001 / coordinate D
+ 
+ */
+ # so our data cant support a foreign key relationship hereas it returns multiple records for a single cusotmer zip code so we dont know 
+ #which exact coordinates is our cusotmer belongs to?
+ #this is explined in detail there in the documentation.
+ 
+ #but we can find the state of a cusomter and seller using this lookup table so that is the purpose of this table not exact coordinated of a 
+ #customer as zip_code is repeated but can find the state.
+ 
+ 
 create table geolocation(
 geolocation_id int auto_increment primary key,
 geolocation_zip_code_prefix int not null,
@@ -216,8 +242,19 @@ geolocation_state char(2) not null);
 show tables;
 
 
+#display the reviews table to fix the primary key
+#as we Discovered in python this cant be primary key because it contains duplicates
+show create table reviews;
+
+#lets fix this and make this compsote key
+
+alter Table reviews
+drop primary key,
+add primary key (review_id, order_id);	
 
 
+#display the changes
+show create table reviews;
 
 
 
