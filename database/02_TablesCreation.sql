@@ -254,8 +254,79 @@ add primary key (review_id, order_id);
 
 
 #display the changes
+
+#importing the data to the tables 
+#the manual method is pretty slow so lets do this in python with pymysql library
+
 show create table reviews;
 
+#Delete from customer;
+
+select * from customer;
+
+#set sql_safe_updates = 0;
+
+
+#the data is loaded through python in transformation notebook as manual method was slow
+
+select count(*) as total_customers from customer;
+
+#now next is order table first lets check the order table if its empty
+#importing orders after customers because customer is a master table and orders having foreign relatinshop with cusomter with foreign key
+
+
+select * from orders;
+
+#next we are going for product table as order_item depends on product and order table
+#so before order_item product and order table should be there
+
+select * from product;
+select count(*) as total_product from product;
+
+#next is seller as order_items also depends on this 
+show tables;
+select count(*) as total_seller from seller;
+
+#next we are going for order_items as that table depends on these above 3 tables that we just imported the data
+
+#order item
+
+select count(*) as total_order_items from order_items;
+
+#checking composite keys
+
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(DISTINCT CONCAT(order_id, '-', order_item_id)) AS unique_composite_keys
+FROM order_items;
+
+#so no duplicate composite key
+#done with order_items table 
+
+#payment table 
+select count(*) as total_rows from payments;
+
+#next is reviews as review depends on order so order table is already loaded alter
+
+select count(*) as total_reviews from reviews;
+
+#so main transactional tables are done now we move to lookup tables which are geolocation and cateogry translation
+
+#Table geolocation 
+
+select count(*) as total_loc from geolocation;
+
+#table category translation
+
+show tables;
+
+select * from product_category_translation;
+
+select count(*) as total_translation from product_category_translation;
+
+#so all tables and data is imported finally we are done with it.
+
+#for queres we are gonna use another file
 
 
 
