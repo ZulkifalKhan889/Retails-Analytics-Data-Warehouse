@@ -1,8 +1,31 @@
 #now here we are gonna to create the curated views for Power BI reporting 
 
+
+#The problem: your views use price as revenue, but vw_payments sums payment_value, which includes freight.
+ #If someone compares the two, the numbers won't match, and they might think the data is wrong. Example: 
+ #an item priced $100 with $20 freight counts as $100 in sales and $120 in payments.
+
+/*
+METRIC DEFINITIONS
+- Revenue = SUM(price) of items from delivered orders (freight excluded)
+- Freight = SUM(freight_value)
+- Payment value = what customers paid in total (price + freight, so it will be higher than revenue)
+- Order = one distinct order_id (an order can have several items)
+- Customer = one distinct customer_unique_id (customer_id changes per order)
+- Scope: delivered orders only; cancelled or unavailable orders are excluded
+*/
+
+
+
+
+
+
+
+
+
 use brazilian_ecommerce_analytics;
 
-
+show tables;
 #now we are creating our first view first is about sales as it is an imp figure here
 
 CREATE OR REPLACE VIEW vw_sales AS
@@ -39,6 +62,8 @@ LEFT JOIN product p
     ON oi.product_id = p.product_id
 
 WHERE o.order_status = 'delivered';
+
+select * from vw_sales;
 
 #now we were making view of sales but we selected a lot of tables the reason is it is  not a simple sales qury but rather it is a 
 #a data layer and based on this data layer we will be getting other analysis in power bi. 
@@ -627,3 +652,221 @@ FROM vw_monthly_sales;
 #the  above views are reuable reporting views 
 
 #96,478 orders → 110,197 items → $13.22M revenue
+
+select * from vw_monthly_sales;
+show tables;
+
+#so sales month is in varchar we gotta fix this as its not gonna do this time intelligence analysis
+describe vw_monthly_sales ;
+
+#there are some problems with above analysis so we are fixing it one by one
+
+select * from vw_sales;
+
+#now if we look at the above then in this view the cateogory names are in portugues so we also have translation table
+#we are gonna repalce this view with the new one where we will have english names for categories
+
+
+
+#let see the cateogory which does not have trnaslation and will appear null after join 
+SELECT DISTINCT p.product_category_name
+FROM product p
+LEFT JOIN product_category_translation t
+    ON p.product_category_name = t.product_category_name
+WHERE t.product_category_name IS NULL
+  AND p.product_category_name IS NOT NULL
+  AND TRIM(p.product_category_name) <> '';
+  
+#the above query returned 2 names that doesnt have translation so wwe gonna insert it in the main table and then rrerun the above query
+INSERT INTO product_category_translation
+    (product_category_name, product_category_name_english)
+VALUES
+    ('pc_gamer', 'pc_gamer'),
+    ('portateis_cozinha_e_preparadores_de_alimentos', 'portable_kitchen_food_preparers');
+    
+#rerun the above query just paste it here
+
+SELECT DISTINCT p.product_category_name
+FROM product p
+LEFT JOIN product_category_translation t
+    ON p.product_category_name = t.product_category_name
+WHERE t.product_category_name IS NULL
+  AND p.product_category_name IS NOT NULL
+  AND TRIM(p.product_category_name) <> '';
+  
+  #now it does not retun those 2 names so we are good with translation
+  
+  #lets repalce the view with new version where we will have new english names
+
+  CREATE OR REPLACE VIEW vw_sales AS
+SELECT
+    o.order_id,
+    o.customer_id,
+    c.customer_unique_id,
+    o.order_status,
+    o.order_purchase_timestamp,
+    o.order_delivered_customer_date,
+    oi.order_item_id,
+    oi.product_id,
+    oi.seller_id,
+    oi.price,
+    oi.freight_value,
+
+    -- NEW: English name, falls back to Portuguese, then 'Uncategorized'
+    COALESCE(
+        t.product_category_name_english,
+        NULLIF(TRIM(p.product_category_name), ''),
+        'Uncategorized'
+    ) AS product_category,
+
+    c.customer_city,
+    c.customer_state
+FROM orders o
+INNER JOIN customer c ON o.customer_id = c.customer_id
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+LEFT JOIN product p ON oi.product_id = p.product_id
+-- NEW: the dictionary join
+LEFT JOIN product_category_translation t
+    ON p.product_category_name = t.product_category_name
+WHERE o.order_status = 'delivered';
+
+select *  from vw_sales;
+
+#lets validate this category
+
+SELECT COUNT(*) AS total_rows,
+       COUNT(DISTINCT order_id) AS total_orders,
+       ROUND(SUM(price), 2) AS total_revenue
+FROM vw_sales;
+
+
+#now another problem is date colum to work with date time in powerBI
+#now the purchase date is there in the order table so we gonna get this and take it into the vw_sales view because as we done above this view is data
+#layer which will go to powerBi so thats why we are putting it in the view
+
+select * from orders;
+
+#below we are taking the date_column into this vw_sales view from orders using join so below is the updated version of vw_sales
+
+CREATE OR REPLACE VIEW vw_sales AS
+SELECT
+    o.order_id,
+    o.customer_id,
+    c.customer_unique_id,
+    o.order_status,
+    o.order_purchase_timestamp,
+    DATE(o.order_purchase_timestamp) AS order_purchase_date,   -- look here we are taking the date_column
+    o.order_delivered_customer_date,
+    oi.order_item_id,
+    oi.product_id,
+    oi.seller_id,
+    oi.price,
+    oi.freight_value,
+    COALESCE(
+        t.product_category_name_english,
+        NULLIF(TRIM(p.product_category_name), ''),
+        'Uncategorized'
+    ) AS product_category,
+    c.customer_city,
+    c.customer_state
+FROM orders o
+INNER JOIN customer c ON o.customer_id = c.customer_id
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+LEFT JOIN product p ON oi.product_id = p.product_id
+LEFT JOIN product_category_translation t
+    ON p.product_category_name = t.product_category_name
+WHERE o.order_status = 'delivered';
+
+
+#now lets see do we have the day not the timstamp but order_pruchase_date as the previous one contained the timstamp here we removed the timstamp just date
+#while that timestamp column is also there we just derived this order_purchase_date this was necessayr for date column as this column will connect to 
+#date table in powerBI
+select * from vw_sales;
+
+#now next fix is the in another view
+
+select * from vw_monthly_sales;
+
+describe vw_monthly_sales;
+#the vw_monthly_sales has this sales_month which is varchar so we gonna fix this by taking date from the order table
+#also this order date 2017-03-18 and subtract (day number − 1) days.
+#That's 18 − 1 = 17 days back, which gives 2017-03-01. Every order in March lands on the same first-of-month date.
+
+CREATE OR REPLACE VIEW vw_monthly_sales AS
+SELECT
+    DATE_SUB(DATE(o.order_purchase_timestamp),
+             INTERVAL DAYOFMONTH(o.order_purchase_timestamp) - 1 DAY) AS sales_month,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    COUNT(oi.order_item_id) AS total_items,
+    COUNT(DISTINCT c.customer_unique_id) AS unique_customers,
+    SUM(oi.price) AS total_revenue,
+    SUM(oi.freight_value) AS total_freight,
+    ROUND(SUM(oi.price) / COUNT(DISTINCT o.order_id), 2) AS average_order_value
+FROM orders o
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+INNER JOIN customer c ON o.customer_id = c.customer_id
+WHERE o.order_status = 'delivered'
+GROUP BY DATE_SUB(DATE(o.order_purchase_timestamp),
+                  INTERVAL DAYOFMONTH(o.order_purchase_timestamp) - 1 DAY);
+
+#so now rerun the above and check wether we are good with it
+
+select * from vw_monthly_sales;
+
+describe vw_monthly_sales;
+
+#lets validate the view
+
+SELECT COUNT(*) AS total_rows,
+       COUNT(DISTINCT order_id) AS total_orders,
+       ROUND(SUM(price), 2) AS total_revenue,
+       MIN(order_purchase_date) AS first_date,
+       MAX(order_purchase_date) AS last_date
+FROM vw_sales;
+
+SELECT * FROM vw_monthly_sales ORDER BY sales_month LIMIT 5;
+
+#now we are gonna fix another issue which is with seller like with the vw_seller
+
+select * from vw_sellers;
+
+#now if we look closely we have hexID which tells nothing like for exampel 'which states do our top sellers come from?" because there's no location'
+#so we are joining the seller table to bring to bring the city and state.
+
+describe seller;  -- look there is this state and city we take it from here and put in view of vw_seller
+
+#lets update the vw_seller to put the state and city in there
+
+CREATE OR REPLACE VIEW vw_sellers AS
+SELECT
+    oi.seller_id,
+    s.seller_city,     -- NEW
+    s.seller_state,    -- NEW
+
+    COUNT(oi.order_item_id) AS units_sold,
+    COUNT(DISTINCT o.order_id) AS total_orders,
+    COUNT(DISTINCT c.customer_unique_id) AS unique_customers,
+    SUM(oi.price) AS total_revenue,
+    SUM(oi.freight_value) AS total_freight,
+    AVG(oi.price) AS average_item_price
+
+FROM order_items oi
+INNER JOIN orders o ON oi.order_id = o.order_id
+INNER JOIN customer c ON o.customer_id = c.customer_id
+LEFT JOIN seller s ON oi.seller_id = s.seller_id   -- NEW
+
+WHERE o.order_status = 'delivered'
+GROUP BY oi.seller_id, s.seller_city, s.seller_state;
+
+#now lets validate it 
+
+SELECT COUNT(*) AS total_sellers,
+       SUM(units_sold) AS total_units_sold,
+       ROUND(SUM(total_revenue), 2) AS total_revenue,
+       SUM(CASE WHEN seller_state IS NULL THEN 1 ELSE 0 END) AS missing_state
+FROM vw_sellers;
+
+SELECT seller_state, COUNT(*) FROM vw_sellers GROUP BY seller_state ORDER BY 2 DESC;
+
+select * from vw_sellers;
+
