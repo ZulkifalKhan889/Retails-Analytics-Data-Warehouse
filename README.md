@@ -89,7 +89,7 @@ flowchart LR
 
 **Data model (Power BI).** One row-per-order "register" view (`vw_orders`) sits at the centre. Every other order-level table points back to it, so slicers for date and state filter the whole report and no relationship is many-to-many.
 
-<a href="docs/data_model.png"><img src="docs/data_model.png" alt="Power BI data model diagram" width="800"></a>
+<a href="docs/ER_diagram.png"><img src="docs/ER_diagram.png" alt="Power BI data model diagram" width="800"></a>
 
 | From | To | Type |
 |---|---|---|
