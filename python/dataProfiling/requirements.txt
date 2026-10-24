@@ -1,0 +1,22 @@
+# Python dependencies for the data profiling, transformation and MySQL loading steps.
+# Install with: pip install -r python/requirements.txt
+
+# Data handling
+pandas
+numpy
+
+# MySQL connection (keep the ones your scripts actually import)
+sqlalchemy
+pymysql
+# mysql-connector-python
+
+# Keeps database credentials out of the code (reads the .env file)
+python-dotenv
+
+# Notebooks
+jupyter
+ipykernel
+
+# Charts used in profiling (remove if unused)
+matplotlib
+seaborn

@@ -230,7 +230,7 @@ Click any page to open the full-size screenshot.
 <details>
 <summary><b>Page 1: Overview</b> (how is the business doing?)</summary>
 
-<a href="images/01_overview.png"><img src="images/01_overview.png" width="800" alt="Overview page"></a>
+<a href="images/Overview.png"><img src="images/Overview.png" width="800" alt="Overview page"></a>
 
 - **Shows:** six KPI cards (revenue, orders, average order value, customers, on-time delivery, average review), monthly revenue trend, top categories, top states, on-time vs late split and the review score distribution.
 - **Interaction:** date, state and category slicers, and a reset button.
@@ -240,7 +240,7 @@ Click any page to open the full-size screenshot.
 <details>
 <summary><b>Page 2: Sales &amp; Products</b> (what sells, and what does it cost to deliver?)</summary>
 
-<a href="images/02_sales_products.png"><img src="images/02_sales_products.png" width="800" alt="Sales and Products page"></a>
+<a href="images/Sales & Products.png"><img src="images/Sales & Products.png" width="800" alt="Sales and Products page"></a>
 
 - **Shows:** category performance table (revenue, items, average price, freight share), freight cost by state, and three dynamic takeaway sentences.
 - **Design choice:** states with fewer than 100 orders are excluded from freight rankings, so a tiny sample cannot top the list.
@@ -250,7 +250,7 @@ Click any page to open the full-size screenshot.
 <details>
 <summary><b>Page 3: Sellers &amp; Delivery</b> (how well do we deliver, and does lateness hurt?)</summary>
 
-<a href="images/03_sellers_delivery.png"><img src="images/03_sellers_delivery.png" width="800" alt="Sellers and Delivery page"></a>
+<a href="images/Sellers & Delivery.png"><img src="images/Sellers & Delivery.png" width="800" alt="Sellers and Delivery page"></a>
 
 - **Shows:** on-time rate, average delivery days, late orders and average days late, review score for on-time vs late orders, slowest states, delivery time distribution and revenue by seller state.
 - **Takeaway:** late orders receive far lower reviews, and some states wait much longer than others.
@@ -259,7 +259,7 @@ Click any page to open the full-size screenshot.
 <details>
 <summary><b>Page 4: Customers</b> (do customers come back?)</summary>
 
-<a href="images/04_customers.png"><img src="images/04_customers.png" width="800" alt="Customers page"></a>
+<a href="images/Customers.png"><img src="images/Customers.png" width="800" alt="Customers page"></a>
 
 - **Shows:** customers, repeat rate, orders per customer, revenue per customer, one-time vs repeat split, new customers per month, customers by state and the revenue share of each customer type.
 - **Takeaway:** very few customers buy twice, so growth comes mostly from new customers.
@@ -268,7 +268,7 @@ Click any page to open the full-size screenshot.
 <details>
 <summary><b>Page 5: Reviews &amp; Payments</b> (how satisfied are customers, and how do they pay?)</summary>
 
-<a href="images/05_reviews_payments.png"><img src="images/05_reviews_payments.png" width="800" alt="Reviews and Payments page"></a>
+<a href="images/Reviews & Payments.png"><img src="images/Reviews & Payments.png" width="800" alt="Reviews and Payments page"></a>
 
 - **Shows:** average review score, share of low scores, total payment value, average instalments, review trend by month, lowest-rated states, payment method mix and credit card instalments.
 - **Takeaway:** most value is paid by credit card, often in several instalments, and low reviews are not explained by late delivery alone.
@@ -301,7 +301,7 @@ Findings are observations from this dataset, not proof of cause. Recommendations
 ## Data quality and validation
 
 - Every SQL view was checked with **control totals** (row counts, distinct orders, total revenue) after each change.
-- Dashboard numbers were compared with SQL results. All checks are written as a runnable script: [`database/validation_checks.sql`](database/validation_checks.sql).
+- Dashboard numbers were compared with SQL results.
 - **Reconciliation:** total payment value (~$15.42M) is consistent with item revenue plus freight.
 - Filters were tested with small selections (a single small state or category), which exposed and fixed edge cases: a ratio that divided by a filtered count, Top N filters that were not applied, and a blank chart caused by a minimum-sample rule.
 - All design decisions and mistakes are recorded in [`docs/build_log.md`](docs/build_log.md).
@@ -340,19 +340,18 @@ Findings are observations from this dataset, not proof of cause. Recommendations
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/<your-username>/<repo-name>.git
-   cd <repo-name>
+   git clone https://github.com/<ZulkifalKhan889>/<Retails-Analytics-Data-Warehouse>.git
+   cd <Retails-Analytics-Data-Warehouse>
    ```
 2. **Get the data.** Download the Olist dataset from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) and place the CSV files in `data/raw/`.
 3. **Set up Python**
    ```bash
    pip install -r python/requirements.txt
    ```
-4. **Add database settings.** Copy `.env.example` to `.env` and fill in your MySQL details.
-5. **Run the notebooks** in `python/` in order: profiling, then transformation and loading.
-6. **Create the views.** Run the analysis files and then `database/analytics_views.sql` in MySQL.
-7. **Check the numbers.** Run `database/validation_checks.sql` and compare with the dashboard.
-8. **Open the dashboard.** Open the `.pbix` in `powerbi/` with Power BI Desktop. The file contains an imported snapshot of the data, so you can browse it without MySQL. To refresh it, point the data source to your own database.
+4. **Run the notebooks** in `python/` in order: profiling, then transformation and loading.
+5. **Create the views.** Run the analysis files and then `database/analytics_views.sql` in MySQL.
+6. **Check the numbers.** Run `database/validation_checks.sql` and compare with the dashboard.
+7. **Open the dashboard.** Open the `.pbix` in `powerbi/` with Power BI Desktop. The file contains an imported snapshot of the data, so you can browse it without MySQL. To refresh it, point the data source to your own database.
 
 ---
 
@@ -397,10 +396,10 @@ Findings are observations from this dataset, not proof of cause. Recommendations
 
 ## About the author
 
-**Zulkifal Khan**, BS Data Science student, working towards data science and AI engineering roles.
+**Zulkifal Khan**, Data Science, working towards data science and AI engineering roles.
 
-- GitHub: [your-username](https://github.com/your-username)
-- LinkedIn: [your-profile](https://www.linkedin.com/in/your-profile)
-- Email: your.email@example.com
+- GitHub: [Zulkifalkhan889](https://github.com/ZulkifalKhan889)
+- LinkedIn: [Zulkifal khan](https://www.linkedin.com/in/zulkifal-khan-a4b1a5351/?isSelfProfile=true)
+- Email: zulkifalkhan126@gmail.com
 
 **Acknowledgements.** Data: Olist, via Kaggle. Code in this repository is released under the MIT licence (see `LICENSE`). The dataset keeps its own licence.
