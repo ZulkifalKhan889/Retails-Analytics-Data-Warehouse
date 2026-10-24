@@ -382,7 +382,7 @@ Findings are observations from this dataset, not proof of cause. Recommendations
 
 ---
 
-## About the author
+## About the Author
 
 **Zulkifal Khan**, Data Science, working towards data science and AI engineering roles.
 
