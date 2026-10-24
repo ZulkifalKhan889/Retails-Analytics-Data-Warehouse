@@ -216,14 +216,14 @@ Click any page to open the full-size screenshot.
 
 <table>
   <tr>
-    <td align="center"><a href="images/01_overview.png"><img src="images/01_overview.png" width="300" alt="Overview"></a><br><b>1. Overview</b></td>
-    <td align="center"><a href="images/02_sales_products.png"><img src="images/02_sales_products.png" width="300" alt="Sales and Products"></a><br><b>2. Sales &amp; Products</b></td>
-    <td align="center"><a href="images/03_sellers_delivery.png"><img src="images/03_sellers_delivery.png" width="300" alt="Sellers and Delivery"></a><br><b>3. Sellers &amp; Delivery</b></td>
+    <td align="center"><a href="images/Overview.png"><img src="images/Overview.png" width="300" alt="Overview"></a><br><b>1. Overview</b></td>
+    <td align="center"><a href="images/Sales & Products.png"><img src="images/Sales & Products.png" width="300" alt="Sales and Products"></a><br><b>2. Sales &amp; Products</b></td>
+    <td align="center"><a href="images/Sellers & Delivery.png"><img src="images/Sellers & Delivery.png" width="300" alt="Sellers and Delivery"></a><br><b>3. Sellers &amp; Delivery</b></td>
   </tr>
   <tr>
-    <td align="center"><a href="images/04_customers.png"><img src="images/04_customers.png" width="300" alt="Customers"></a><br><b>4. Customers</b></td>
-    <td align="center"><a href="images/05_reviews_payments.png"><img src="images/05_reviews_payments.png" width="300" alt="Reviews and Payments"></a><br><b>5. Reviews &amp; Payments</b></td>
-    <td align="center"><a href="reports/olist_dashboard.pdf"><b>Full PDF report</b></a></td>
+    <td align="center"><a href="images/Customers.png"><img src="images/Customers.png" width="300" alt="Customers"></a><br><b>4. Customers</b></td>
+    <td align="center"><a href="images/Reviews & Payments.png"><img src="images/Reviews & Payments.png" width="300" alt="Reviews and Payments"></a><br><b>5. Reviews &amp; Payments</b></td>
+    <td align="center"><a href="reports/Dashboard.pdf"><b>Full PDF report</b></a></td>
   </tr>
 </table>
 
