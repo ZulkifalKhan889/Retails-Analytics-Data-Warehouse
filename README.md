@@ -132,12 +132,11 @@ retail_data_analytics_warehouse/
 
 | Quick links | |
 |---|---|
-| Project plan | [`docs/project_plan.md`](docs/project_plan.md) |
-| Build log (how every step was done) | [`docs/build_log.md`](docs/build_log.md) |
+| Project plan | [`docs/projectplan.md`](docs/projectplan.md) |
+| Build log (how every step was done) | [`docs/Build_Log.md`](docs/Build_Log.md) |
 | Reporting views | [`database/analytics_views.sql`](database/analytics_views.sql) |
-| Validation queries | [`database/validation_checks.sql`](database/validation_checks.sql) |
 | Dashboard file | [`powerbi/`](powerbi/) |
-| PDF report | [`reports/olist_dashboard.pdf`](reports/olist_dashboard.pdf) |
+| PDF report | [`reports/Dashboard.pdf`](reports/Dashboard.pdf) |
 
 ---
 
