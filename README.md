@@ -130,16 +130,6 @@ retail_data_analytics_warehouse/
 └── reports/                  # PDF export of the dashboard
 ```
 
-| Quick links | |
-|---|---|
-| Project plan | [`docs/projectplan.md`](docs/projectplan.md) |
-| Build log (how every step was done) | [`docs/Build_Log.md`](docs/Build_Log.md) |
-| Reporting views | [`database/analytics_views.sql`](database/analytics_views.sql) |
-| Dashboard file | [`powerbi/`](powerbi/) |
-| PDF report | [`reports/Dashboard.pdf`](reports/Dashboard.pdf) |
-
----
-
 ## Pipeline walkthrough
 
 <details>
