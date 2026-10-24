@@ -12,7 +12,7 @@ An end-to-end analytics pipeline built on the public Olist Brazilian e-commerce 
 
 <a href="images/Overview.png"><img src="images/Overview.png" alt="Overview page of the Power BI dashboard" width="900"></a>
 
-*Click the image to open it full size. A PDF export of every page is in [`reports/olist_dashboard.pdf`](reports/olist_dashboard.pdf).*
+*Click the image to open it full size. A PDF export of every page is in [`reports/Dashboard.pdf`](reports/Dashboard.pdf).*
 
 ---
 
