@@ -20,9 +20,6 @@ METRIC DEFINITIONS
 
 
 
-
-
-
 use brazilian_ecommerce_analytics;
 
 show tables;
@@ -870,3 +867,25 @@ SELECT seller_state, COUNT(*) FROM vw_sellers GROUP BY seller_state ORDER BY 2 D
 
 select * from vw_sellers;
 
+#we are creating another view for our data model as there an issue with realtionship in power bi the explanation for that is there in documentaiton
+
+CREATE OR REPLACE VIEW vw_orders AS
+SELECT
+    o.order_id,
+    DATE(o.order_purchase_timestamp) AS order_purchase_date,
+    c.customer_state,
+    c.customer_city
+FROM orders o
+INNER JOIN customer c ON o.customer_id = c.customer_id
+WHERE o.order_status = 'delivered';
+
+select * from vw_orders;
+
+
+#lets check if any order appears twice
+SELECT COUNT(*) AS total_rows,
+       COUNT(DISTINCT order_id) AS distinct_orders
+FROM vw_orders;
+
+#lets load it to pwoer bi
+describe vw_orders;

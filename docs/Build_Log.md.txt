@@ -1,0 +1,533 @@
+## Date table
+
+- What I did: made a calendar table in Power BI with one row per day
+- Why: sales only has days with orders, so trends would have gaps
+- How: Table view > New table > CALENDAR(...) DAX, then marked it as date table
+  and linked Date[Date] to vw_sales[order_purchase_date]
+- Check: revenue card showed 13.22M, matching SQL
+
+
+
+## Measures table and core measures (DAX)
+
+- What I did: created a `_Measures` table and six measures: Total Revenue,
+  Total Orders, Total Items Sold, Avg Order Value, Unique Customers, Total Freight
+- Why: a measure recalculates for whatever the dashboard is filtered to.
+  If I click state SP, Total Revenue shows only SP, and Avg Order Value
+  becomes SP revenue / SP orders. A number stored in a SQL view can't do that.
+  I keep all measures in one table so they're easy to find.
+- How: Home > Enter data > named it _Measures > Load. Then selected _Measures >
+  Home > New measure for each one:
+    Total Revenue = SUM(vw_sales[price])
+    Total Orders = DISTINCTCOUNT(vw_sales[order_id])
+    Total Items Sold = COUNTROWS(vw_sales)
+    Avg Order Value = DIVIDE([Total Revenue], [Total Orders])
+    Unique Customers = DISTINCTCOUNT(vw_sales[customer_unique_id])
+    Total Freight = SUM(vw_sales[freight_value])
+  - DISTINCTCOUNT counts an order once even if it has 3 items
+  - DIVIDE returns blank instead of an error when there is nothing to divide
+- Check: compared each card with SQL.
+    Total Revenue = $13,221,498.11
+    Total Orders = 96,478
+    Total Items Sold = 110,197
+    Avg Order Value = $137.02
+    Unique Customers = ___ (SQL: ___)
+    Total Freight = ___ (SQL: ___)
+- Mistake / fix: the first Revenue measure was created inside the Date table.
+  Moved it to _Measures so the Date table only holds calendar columns.
+
+- we created a separate table for measures with the name of _measures so all the measures we create go there as you can see on the right sidebar of
+  of powerBi 
+
+## Connecting Date table with other views
+
+- Till now we have connected only vw_sales views to the date table while others are floating in the data model now why are we connecting 
+  the those views becuase those contains state and city column adn the filter wouldnt work on it if they are not connnected to the Vw_sales table
+  but there is an issue the order_id that we will use to make relationship in data model is it is presented it like duplicate in majritory
+  of the table while link only work if there is one to many like the order_id in one must be unique so to overcome this we are creating another view 
+  in sql this will be a small table with exactly one row per order which will be use for relationship in data model. like every order will appear there 
+  once and every payment, delievry adn review will point back to it which the filter will also work best there
+
+## Rewire the Model
+
+- As we created the above table vw_orders in mysql and it has like unique orders and we loaded it back to power bi and now that table is there but 
+  now we have to create the relationship of this vw_orders table (they are actually views but in the form of ttable so i call them table) 
+  this table has uniqe orders so itw ill have one to many realtionship with other table like it contains unique orders while other dont so thats why
+  one to many and because of this the slicers and filter will work across all the pages
+  also now we have the connection between Date table and vw_sales we created earlier but now we will have the relationship like the date connected 
+  to vw_orders and then to vw_sales so we are deleting that relationship between date and vw_sales
+  
+- but also with that we deleting all the realtionship that were auto and created 7 other relationship 
+
+- 1	Date[Date]	vw_orders[order_purchase_date]	One to many
+  2	vw_orders[order_id]	vw_sales[order_id]	One to many
+  3	vw_orders[order_id]	vw_reviews[order_id]	One to many
+  4	vw_orders[order_id]	vw_payments[order_id]	One to many
+  5	vw_orders[order_id]	vw_delivery[order_id]	One to one
+  6	vw_products[product_id]	vw_sales[product_id]	One to many
+  7	vw_sellers[seller_id]	vw_sales[seller_id]	One to many
+
+  for now this is our data model and wea re gonna verify it inthe reporting view by adding some measure in card and then apply slice on it if it works 
+  and they all changes together then we are good to go
+
+- More explanation to the above:
+  
+  Rewiring the data model (star around vw_orders)
+
+  What I did: removed the direct Date -> vw_sales link and the auto-detected
+  links Power BI created, then built 7 relationships:
+  Date -> vw_orders, vw_orders -> vw_sales / vw_reviews / vw_payments / vw_delivery,
+  vw_products -> vw_sales, vw_sellers -> vw_sales.
+  vw_customers is left unconnected for now.
+  Why: vw_sales, vw_payments and vw_reviews have many rows per order. Linking them
+  to each other directly gives many-to-many links and can double count.
+  One register table (vw_orders, one row per order) that everything points to
+  keeps each link one-to-many, and lets one state/date slicer filter every table.
+  Two roads between the same tables also confuse Power BI, so I removed the extras.
+  How: Model view to delete the wrong links, then Home > Manage relationships to
+  check the 7 rows were all Active, One to many, Single direction (delivery is
+  One to one, which Power BI sets to Both automatically).
+  Check: slicer on customer_state = SP changed revenue, orders, review score,
+  items, AOV, freight and customers together. SP numbers matched SQL: ___
+  Mistake / fix: Power BI auto-created extra relationships (through customer_unique_id
+  and order_id). Deleted them. Some were inactive (dotted lines). so made them active adn left with only those above relationship
+
+
+## Overview page: layout, slicers and KPI row
+
+- What I did: set the canvas (16:9, off-white), added a navy sidebar, a slicer
+  row (date, state, category) and six KPI cards
+- Why: slicers give the viewer control, and the KPI row gives the headline
+  numbers first, the way a manager reads a dashboard
+- How: Rectangle shape for the sidebar sent to back; slicers set to dropdown to
+  save space; one card formatted (Callout value size, label on, Display units Auto),
+  then copied five times with exact X/Y positions so they line up
+- Check: all six values matched SQL: revenue $13,221,498.11, orders 96,478,
+  AOV $137.04, customers 93,358, on-time 91.89%, avg review 4.16
+- Mistake / fix: forced Display units to Millions, so a small state showed 0.05M.
+  Changed to Auto so it switches between M and K. Also wrote AOV as $137.02 by
+  mistake; the correct value is 13,221,498.11 / 96,478 = $137.04.
+
+
+## Page 2: Sales & Products
+
+### What this page does (summary)
+- Answers one business question: what sells, and what does it cost to deliver it?
+- Shows four headline numbers, a category comparison table, a freight-cost-by-state
+  chart, and a "Key takeaways" box that writes its own sentences from the data.
+
+### What we did
+- Duplicated the Overview page so the sidebar, slicers and layout stayed the same,
+  then removed the old visuals.
+- Made a new bookmark ("Reset - Sales") for this page's reset button, because the
+  copied button still pointed to Page 1.
+- Created two new measures:
+    Freight % of Revenue = DIVIDE([Total_Freight], [Revenue])
+    Avg Item Price = DIVIDE([Revenue], [Total_items_Sold])
+- Built four KPI cards: Revenue, Items sold, Avg item price, Freight % of revenue.
+- Built a category table (revenue, items sold, avg price, freight %) with data bars
+  on revenue, sorted biggest first, limited to the top categories.
+- Built a bar chart of freight % by state (Top N by freight %, only states with
+  100+ orders, so tiny states don't distort it).
+- Built three "Key takeaway" sentences with DAX measures (top 10 share of revenue,
+  highest avg price category, highest freight share state).
+
+### How we did it
+- KPI cards: copied the formatted cards from Page 1 and swapped the measures.
+- Table: Table visual, Top N filter on product_category, data bars via
+  Format > Visual > Cell elements > Revenue > Data bars.
+- State chart: Clustered bar chart, Top N filter on customer_state, Total Orders
+  added to the tooltip so I can see how many orders sit behind each bar.
+- Takeaways: measures that use TOPN (pick the top rows), FILTER (ignore tiny groups),
+  FORMAT (turn numbers into text) and MAXX (pull out the single value).
+
+### Why it matters for a business
+- Shows which categories bring in the money and whether they do it with many cheap
+  items or a few expensive ones (important for deciding what to stock and promote).
+- Shows how much of each sale goes on shipping, and where it hurts most
+  (important for shipping deals, pricing and where to sell).
+- The takeaways box lets a manager read the answer in 10 seconds instead of reading charts.
+
+### Insights (from my own numbers)
+- Revenue is concentrated: the top 10 categories generate about 62% of revenue
+  (8.25M of 13.22M, which matches the SQL).
+- Health & beauty is the biggest category by revenue (about $1.23M).
+- watches_gifts has a high average price ($199.04) and the lowest freight share in the
+  top 10 (8.4%), so it earns well and costs little to ship.
+- furniture_decor (23.7%) and housewares (23.2%) have low average prices ($87 and
+  $91) but high freight shares, so shipping eats a big part of each sale.
+- bed_bath_table sells the most items among the top categories (10,953) at about $93 each.
+- Overall freight is about 16.6% of revenue.
+- Freight is highest in a group of states (MA 26.3%, then RO, AM, SE, PI, TO), mostly
+  in the north and northeast. This is probably about distance from the sellers,
+  which I still need to check on the delivery page. I should not claim the cause yet.
+- Computers have the highest average item price (about $1,099).
+
+### Checks I did
+- Top 10 share: 8,254,334.23 / 13,221,498.11 = 62.4%, matches the takeaway.
+- Avg item price: 13,221,498.11 / 110,197 = $119.98, matches the card.
+- Category SQL check: ___ (SQL) vs ___ (Power BI)
+- State freight SQL check: ___ (SQL) vs ___ (Power BI)
+
+### Mistakes and fixes
+- The "highest avg price" takeaway used a fixed cutoff of 100 items, so it showed blank
+  when I selected a small state. Fixed: the cutoff now scales with the selection
+  (0.1% of items, minimum 5) and shows a message if nothing qualifies.
+  Lesson: test measures on a small slice, not only on the full data.
+- The table's Total row was only the total of the top 10 categories (8.25M), which
+  disagreed with the 13.22M card. Turned Totals off.
+- The state chart and the takeaway disagreed (RR vs MA) because only the takeaway
+  ignored states with under 100 orders. Added the same filter to the chart.
+- Clicking the rectangle behind the takeaway cards hid them (it comes to the front
+  when selected). Replaced the rectangle and cards with one multi-row card.
+- The table was sorted smallest first. Re-sorted descending.
+
+### What I'd tell a manager (recommendations to test, not proven)
+- Focus promotion on high-revenue, low-freight categories like watches_gifts.
+- Look at shipping costs for bulky low-priced categories (furniture_decor, housewares).
+- Check whether the high-freight states are far from the sellers before deciding
+  anything about prices or delivery options there.
+
+### Interpretation of what bar chart and key takeaways explain
+- The bar chart, in plain English
+- Each bar is one state. Its length is the freight charged as a percentage of the products' price in that state.
+- Worked example: MA is 26.3%. For every $100 of products customers in MA bought, $26.30 of shipping was charged on top. The national average is 16.6%, so the same $100 of products costs about $16.60 to ship on average. MA customers pay roughly $10 more per $100.
+- The chart shows only the 8 states with the highest freight share, and only states with 100+ orders, so a state with 5 orders can't take the top spot by luck.
+
+- Two things the chart doesn't tell you:
+
+- It doesn't show how big the state is. SP isn't in the list because its freight share is low, but it brings in the most revenue. A long bar means expensive shipping, not a big market. The tooltip (hover) gives the order count.
+- It doesn't tell you why. Distance is a likely reason, but nothing on this page proves it. We test it on the delivery page.
+- The three key takeaways
+
+- 1. "Top 10 categories generate 62% of revenue"
+
+- A small number of categories carries most of the business, which is called concentration.
+- A business reads it two ways: these categories deserve stock, promotion and attention, but the company also depends on them. If one has a bad month, revenue feels it.
+- It recalculates with your slicers, so for one state it's that state's top 10.
+
+- 2. "Highest avg price: computers ($1,099)"
+
+- This is the most expensive category per item sold, not the biggest one. Computers isn't in your top 10 by revenue (look at the table), so it must sell few items.
+- The point: high price doesn't mean high revenue. It's a premium niche. A good follow-up question is how many computers were actually sold, and whether that's worth growing.
+
+- 3. "Highest freight share: MA (26.3% of revenue)"
+
+- Customers in Maranhão pay the most for shipping relative to what they buy.
+- A business reads it as a possible pricing or logistics problem: maybe delivery there is costly, or high shipping costs put people off buying.
+- One honest limit: your data only contains orders that were delivered. People who left because shipping was too expensive never appear, so the real effect could be larger than the data shows.
+  
+
+
+
+## Page 3: Sellers & Delivery
+
+### What this page is about (summary)
+- It answers one question: how well do we deliver, and does bad delivery hurt customers?
+- It has 4 KPI cards, 4 charts and a "Key takeaways" box.
+- It links operations (delivery speed) to a customer result (review score).
+
+### What we did
+- Duplicated the Sales & Products page so the sidebar, slicers and reset button stayed.
+- Made a new bookmark "Reset - Delivery" and pointed this page's reset button to it.
+- Created these measures (all in the _Measures table):
+    Late Orders = count of rows in vw_delivery where delivery_status = "Late"
+    Avg Days Late = average delivery_delay_days, only for late orders
+    Active Sellers = number of different sellers with sales (DISTINCTCOUNT of seller_id)
+    Delivered Orders = number of different orders in vw_delivery
+    Takeaway Review / Takeaway Slow / Takeaway Sellers = three measures that write a sentence
+- Fixed the On-Time % measure (see mistakes below).
+- Built 4 KPI cards: On-time delivery %, Avg delivery days, Late orders, Avg days late.
+- Built 4 charts: review score for on-time vs late, slowest states, delivery time
+  distribution, revenue by seller state.
+- Built the Key takeaways box as 3 small cards on top of each other, plus a title.
+
+### How we did it
+- Review score chart: columns chart, X-axis = delivery_status, Y-axis = average review score.
+  It works because vw_delivery connects to vw_orders, and vw_orders connects to vw_reviews.
+- Slowest states: bar chart, Top N = 8 by average delivery days, and only states with
+  100+ orders, so a tiny state can't win by luck.
+- Delivery time distribution: grouped delivery_days into bins of 5 days (a "bin" is a range
+  like 0-4 days, 5-9 days) and counted orders in each bin.
+- Revenue by seller state: bar chart, Top N = 8, with Active Sellers in the tooltip.
+- Takeaways: each sentence is a DAX measure, and each sits in its own Card visual.
+  I used Edit interactions > None so clicking a chart doesn't change them.
+
+### How to read each chart (in plain words)
+- Review score chart: the average star rating of orders that arrived on time vs late.
+- Slowest states: the states where orders take the longest to arrive, on average.
+- Delivery time distribution: how many orders arrived after 0-4 days, 5-9 days, and so on.
+  A tall bar on the left and a thin tail on the right means most orders are fast, and a few
+  are very slow.
+- Revenue by seller state: where the sellers who make the money are located.
+  (Different from where customers are.)
+
+### Why it matters for a business
+- Late deliveries are a cost: unhappy customers, bad reviews, fewer repeat purchases.
+- Knowing which states are slow shows where logistics need work.
+- Knowing where the revenue-making sellers are tells us where goods ship from. This helps
+  explain why shipping to some states is slow and expensive.
+- The seller concentration number shows how dependent the marketplace is on a few sellers.
+
+### Insights (only the ones I have checked)
+- On-time delivery is 91.89%, so about 8.11% of orders are late.
+- 7,826 orders were delivered late, and on average they were about 8.87 days late.
+- Average delivery time is 12.5 days across all orders.
+- Late orders get a much lower average review: about 2.6 vs 4.3 for on-time orders
+  (SQL check: ___ vs ___).
+- Slowest state (all states, 100+ orders): ___ (___ days).
+- Top 10% of sellers generate about ___% of revenue (SQL check: ___).
+- Seller revenue is concentrated in São Paulo sellers (the SP bar is by far the longest).
+  Seller state numbers (SQL check): ___.
+- Careful: the review gap shows a link, not proof of cause. Late orders may also be late
+  because of other problems (damaged items, wrong items).
+
+### Checks I did
+- On-time % and average delivery days matched SQL (91.89% and 12.50).
+- Late orders (7,826) matched the SQL count: ___
+- Review score by status: SQL ___ vs Power BI ___
+- Slowest states: SQL ___ vs Power BI ___
+- Revenue by seller state: SQL ___ vs Power BI ___
+
+### Mistakes and fixes (these are good interview stories)
+- On-Time % showed 1132% when I clicked the Late bar. The measure divided by the filtered row
+  count, which shrinks to only the late orders. Fixed by using REMOVEFILTERS on the bottom
+  number, so it ignores the status selection.
+  Lesson: click every bar and slicer value to test a measure, not only the full data.
+- The "Top N" filter on two charts wasn't applied, so more than 8 states showed up in
+  alphabetical order. Fixed by re-applying the filter and clicking "Apply filter".
+- The takeaway sentences changed when I clicked a bar (they showed late-orders-only numbers).
+  Fixed with Edit interactions > None.
+- A multi-row card with three measures stretched sideways and ran off the box. Replaced it
+  with three separate Card visuals stacked on top of each other.
+- I first planned a "top 10 sellers" table, but the dataset only has anonymous seller IDs
+  with no names, so it wasn't useful. Replaced it with revenue by seller state.
+- Avg Delivery Days showed "12" and the 0.5 was hidden. Fixed by setting 1 decimal place.
+
+### What I'd tell a manager (ideas to test, not proven)
+- Look at the slowest states first. Slow delivery is probably linked to distance from the
+  sellers, but the data doesn't prove that yet.
+- Reducing late deliveries should lift review scores, since late orders score far lower.
+- Because revenue depends on a small group of sellers, keep those sellers happy.
+
+
+
+## Page 4: Customers (work in progress)
+
+### What this page is about (summary)
+- It answers one question: do customers come back?
+- It will have 4 KPI cards, a one-time vs repeat donut, a new-customers-per-month trend,
+  a customers-by-state chart, a revenue share chart and a Key takeaways box.
+- Done so far: page setup, the new data link, 3 measures and 4 KPI cards.
+- Still to do: the donut, trend, state chart, revenue share chart and takeaways.
+
+### What we did so far
+- Duplicated the Sellers & Delivery page so the sidebar, navigator and slicers stayed,
+  then deleted the old cards and charts.
+- Made a new bookmark "Reset - Customers" and pointed this page's reset button to it
+  (a copied button still points to the old page's bookmark).
+- Connected vw_customers to the model for the first time: customer_unique_id in
+  vw_customers -> customer_unique_id in vw_sales, one to many, single direction.
+- Created 3 measures in _Measures:
+    Repeat Rate = repeat customers / all customers
+    Orders per Customer = Total Orders / Unique Customers
+    Revenue per Customer = Revenue / Unique Customers
+- Built 4 KPI cards: Customers, Repeat customer rate, Orders per customer, Revenue per customer.
+
+### How we did it
+- Link: Model view, dragged customer_unique_id from vw_customers onto customer_unique_id
+  in vw_sales, then checked it said One to many, Single, Active.
+- Repeat Rate: CALCULATE counts the customers whose customer_type is "Repeat Customer",
+  and DIVIDE turns it into a share of all customers.
+- All three measures are built on vw_sales, not on vw_customers, so they react to the date
+  and state slicers.
+- Cards: copied the formatted cards from the previous page (Ctrl+C / Ctrl+V), swapped the
+  measure, and set each at Y 85, size 248 x 100.
+
+### Why it matters for a business
+- Finding a new customer costs money (marketing). A customer who returns costs far less.
+- If very few customers come back, growth depends on constantly finding new buyers.
+- Revenue per customer shows how much one customer is worth, which sets how much it makes
+  sense to spend to win one.
+
+### Why connect vw_customers (and why this way)
+- vw_customers already contains customer_type (One-Time or Repeat), worked out in SQL.
+- Connecting it lets the dashboard split sales by customer type without recalculating anything.
+- The link goes one way only (customers -> sales), so no double counting and no confusing paths.
+- Before this, vw_customers sat alone in the model on purpose, so it wouldn't create a
+  second road between tables.
+
+### Insights so far (only what I have checked)
+- 93,358 customers placed 96,478 orders, which is 1.03 orders per customer.
+  If everyone ordered once it would be exactly 1.00, so only a small share ordered again.
+- Revenue per customer is about $141.62 (13,221,498.11 / 93,358).
+- Repeat rate: ___% (SQL check: ___%)
+- I won't write conclusions until the donut and the revenue share chart are built.
+
+### Things to remember (limits of the data)
+- customer_type is based on a customer's whole history. Someone with two orders in total
+  counts as "Repeat" even if only one order falls inside the date range I selected.
+- The data only has delivered orders, so customers whose orders were cancelled aren't here.
+- The dataset is from 2016 to 2018, so some "one-time" customers might have returned
+  after the data ends.
+
+### Checks I did
+- Customers card shows 93,358, matching the SQL count: ___
+- Orders per customer: 1.03, Revenue per customer: $141.62 (both worked out by hand first)
+- Repeat rate: Power BI ___% vs SQL ___%
+- Clicked the SP state: all four cards changed. Clicked reset: back to the full totals.
+
+### Mistakes and fixes so far
+- (add any real ones here as they happen, for example a wrong measure name or a link
+  that showed many-to-many)
+
+
+### in this customer line chart we did
+
+- Cropped the date axis to start at Jan 2017 on the trend charts.
+  Why: orders start in Sep 2016 and the first months have very few orders, which made the
+  line look like it started from zero. It's a view setting only; the cards still include 2016.
+  Trade-off: the visible points don't add up to the card total, because 2016 is hidden.
+
+
+## Page 4: Customers
+
+### What this page is about (summary)
+- It answers one question: do customers come back, and does it matter?
+- It has 4 KPI cards, a one-time vs repeat donut, a new-customers-per-month line,
+  a customers-by-state bar, a revenue-share-by-customer-type chart and a Key takeaways box.
+
+### What we did
+- Duplicated the previous page and made a bookmark "Reset - Customers" for its reset button.
+- Connected vw_customers to the model for the first time: customer_unique_id ->
+  vw_sales[customer_unique_id], one to many, single direction.
+- Created measures: Repeat Rate, Orders per Customer, Revenue per Customer, Revenue Share %,
+  and three takeaway sentences.
+- Added a column in vw_customers, First Purchase Month (first day of the month of each
+  customer's first purchase), to plot new customers per month.
+- Built the 4 cards and 4 charts, and the takeaways box (3 small cards and a title).
+
+### How we did it
+- Donut: legend = customer_type, values = Unique_Customers.
+- New customers per month: X-axis = First Purchase Month (the plain field, not the date
+  hierarchy), Y-axis = Unique_Customers, axis cropped to start at Jan 2017.
+- Customers by state: Top N = 6 by Unique_Customers.
+- Revenue share: Revenue Share % = revenue of this customer type / revenue of all types.
+  ALL() removes only the customer-type filter, so date and state slicers still apply.
+- Takeaways: Edit interactions > None, so clicking a chart doesn't change them.
+
+### How to read each chart (in plain words)
+- Donut: what share of customers bought only once vs came back.
+- New customers per month: how many people made their very first purchase each month.
+- Customers by state: where our customers live.
+- Revenue share: how much of the money comes from each type of customer.
+
+### Why it matters for a business
+- Winning a new customer costs money (marketing); a returning customer costs much less.
+- If almost nobody returns, growth depends on always finding new buyers.
+- Knowing how much more a repeat customer is worth helps decide how much to spend on
+  getting people to come back.
+
+### Insights (only the ones I have checked)
+- 93,358 customers placed 96,478 orders: 1.03 orders per customer.
+- Only about 3.0% of customers are repeat customers (SQL check: ___%).
+- Repeat customers bring about 5.5% of revenue (SQL check: ___%), so each one is worth
+  roughly 1.8x the average customer (rounded numbers).
+- Revenue per customer overall is about $141.62.
+- SP has about 42% of customers (SQL check: ___).
+- New customers per month rose through 2017, peaked around ___, then flattened at about
+  6K-7K per month in 2018. Because so few customers return, revenue growth came mostly
+  from new customers (this is an observation, not proven).
+- SP has 42% of customers but about 38% of revenue, so SP customers spend a bit less each
+  (to check: could be price or product mix).
+
+### Limits of the data (remember these)
+- customer_type is based on a customer's whole history, not only the selected dates.
+- Only delivered orders are included.
+- Data ends in 2018, so some "one-time" customers may have returned later.
+- The date axis is cropped to start at Jan 2017 (display setting only; the cards include 2016).
+
+### Checks I did
+- Customers card: 93,358, matches SQL.
+- Repeat rate: Power BI 3.0% vs SQL ___%
+- Revenue share: Power BI ___ vs SQL ___
+- Customers by state: SQL ___ vs Power BI ___
+- New customers by year: SQL ___ vs tooltip ___ (2018 tooltip showed 50,963)
+- Clicked SP: cards and charts changed; takeaways stayed. Reset button: back to full totals.
+
+### Mistakes and fixes
+- The date column on the line chart was plotted as a Year hierarchy (hover showed only the year,
+  2 points). Power BI makes a hidden Year/Quarter/Month/Day hierarchy for every date column.
+  Fixed by choosing the plain field in the X-axis well.
+- The takeaway cards were copied from the previous page and still showed delivery sentences.
+  Replaced the measures in each card.
+- The x-axis showed only every 3rd month label. That's normal for a continuous axis; the points
+  in between are all plotted.
+- The Customers card showed "93K" because of auto display units. Set to None.
+
+### What I'd tell a manager (ideas to test, not proven)
+- Growth depends on new customers, so marketing to new buyers is where the volume is.
+- A repeat customer is worth more than 1.5x an average customer, so it could be worth
+  trying simple win-back offers (check if the cost is justified).
+- Look into why SP customers spend slightly less per head.
+
+
+
+## Page 5: Reviews & Payments
+
+### What this page is about (summary)
+- It answers two questions: how happy are customers (and where are they least happy),
+  and how do they pay?
+- 4 KPI cards, a review-score-by-month line, a lowest-rated-states bar, a payment-methods
+  donut, a credit-card installments chart and a Key takeaways box.
+
+### What we did
+- Duplicated the Customers page, made a bookmark "Reset - Reviews" for the reset button.
+- Created measures: Low Score Share, Total Payment Value, Avg Installments CC, Review Count,
+  CC Payments, and three takeaway sentences.
+- Built the 4 cards, 4 charts and the takeaways box.
+
+### How we did it
+- Review trend: X-axis = Date[Month Start], Y-axis = Avg_Review_Score, axis cropped to 2017+.
+- Lowest-rated states: Bottom N = 8 by Avg_Review_Score.
+- Payment donut: legend = payment_type, values = Total Payment Value.
+- Installments: payment_installments set to "Don't summarize" so it works as categories.
+
+### Why it matters for a business
+- Reviews show customer happiness and point to where service is weak.
+- Payment habits (card vs boleto, paying in installments) affect pricing and promotions.
+
+### Insights (only the ones I have checked)
+- Average review is 4.16, and 12.8% of reviews are 1-2 stars (SQL: ___).
+- Credit card is ~78% of payment value, boleto ~18% (SQL: ___).
+- Average installments on credit cards: 3.50 (SQL: ___).
+- Lowest-rated state: ___ (SQL: ___).
+- Low-score share by delivery status: on time ___%, late ___% (SQL: ___).
+  Late orders are only ~8% of orders, so late delivery is not the only reason for low scores.
+- Reconciliation: payments $15.42M vs price + freight ___ (SQL: ___). Difference: ___.
+
+### Checks I did
+- Cards matched SQL: ___
+- Lowest-rated states chart vs SQL: ___
+- Payment shares vs SQL: ___
+
+### Mistakes and fixes
+- The Bottom N filter on the states chart wasn't applied (showed SP, AP, PR, AM at ~4.2
+  while the takeaway said MA). Re-applied with "Apply filter" and sorted ascending.
+- The installments chart sorted by order count, not by installment number. Fixed with Sort axis.
+- Labels and titles had typos (extra brackets, field names with underscores).
+
+
+- Excluded 0 installments from the installments chart (and capped it at 10).
+  Why: a credit card payment can't have 0 installments, so those rows look like a
+  data-entry error (SQL count: ___ rows). They were nearly invisible and cluttered the chart.
+  Decision: hide in the chart only, and note it here. The source data is untouched.
+
+### Note for seller and delivery page
+
+- Takeaway named AM as the slowest state but the chart showed other states slower.
+  Cause: the takeaway ignored states under 100 orders and the chart didn't, and the
+  chart was sorted ascending. Fix: same 100-order rule on both, sorted descending,
+  and the rule stated in the title and the sentence.
+  Lesson: a small sample can top a "highest average" ranking, so apply the same minimum
+  everywhere and say so.
