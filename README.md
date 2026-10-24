@@ -10,7 +10,7 @@ An end-to-end analytics pipeline built on the public Olist Brazilian e-commerce 
 
 [**Dashboard**](#dashboard) · [**Key insights**](#key-insights) · [**Architecture**](#architecture) · [**How to reproduce**](#how-to-reproduce) · [**Future work**](#future-work)
 
-<a href="images/01_overview.png"><img src="images/01_overview.png" alt="Overview page of the Power BI dashboard" width="900"></a>
+<a href="images/Overview.png"><img src="images/Overview.png" alt="Overview page of the Power BI dashboard" width="900"></a>
 
 *Click the image to open it full size. A PDF export of every page is in [`reports/olist_dashboard.pdf`](reports/olist_dashboard.pdf).*
 
@@ -118,8 +118,7 @@ flowchart LR
 ```
 retail_data_analytics_warehouse/
 ├── README.md
-├── LICENSE
-├── .env.example              # database settings template (no secrets)
+├── LICENSE            # database settings template (no secrets)
 ├── data/
 │   ├── raw/                  # Olist CSVs (download from Kaggle, not committed)
 │   └── processed/            # cleaned files produced by Python
